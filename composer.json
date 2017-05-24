@@ -1,0 +1,31 @@
+{
+    "name": "gsdata/open-php-sdk",
+    "description": "gsdata-sdk",
+    "keywords": ["gsdata", "qingbo", "sdk"],
+    "homepage": "http://open.gsdata.cn/sdk",
+    "license": "MIT",
+    "type": "library",
+    "authors": [
+        {
+            "name": "shaoqi",
+            "email": "admin@shaoqi.net",
+            "homepage": "http://open.gsdata.cn"
+        }
+    ],
+    "require": {
+        "php":">=5.5"
+    },
+    "require-dev" : {
+        "phpunit/phpunit": "~4.0",
+        "satooshi/php-coveralls": "~1.0"
+    },
+    "minimum-stability": "stable",
+    "autoload": {
+        "psr-4": {"GSDATA\\": "src/"}
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "GSDATATests\\": "tests/"
+        }
+    }
+}
