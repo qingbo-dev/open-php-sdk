@@ -10,13 +10,17 @@ namespace GSDATA;
 
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Request;
+use function GuzzleHttp\Psr7\stream_for;
 
 final class SDK
 {
-    const VERSION = '1.0.0';
+    const VERSION = '1.0.2';
 
-    private $host = 'api.qb.cn';
+    private $host = 'api.gsdata.cn';
+
+    private $old_host = 'open.gsdata.cn/api';
 
     private $signature;
 
@@ -26,7 +30,7 @@ final class SDK
 
 
 
-    public function __construct($app_key,$app_secret,$ishttps=false)
+    public function __construct($app_key,$app_secret,$version='2',$ishttps=false)
     {
         $this->signature = new Signature($app_key,$app_secret);
         $this->ishttps = $ishttps;
@@ -44,12 +48,20 @@ final class SDK
         $this->body=['body'=>$params];
     }
 
-    public function post_send($body,$query=false){
+    /**
+     *
+     * @param string $body
+     * @param bool $query
+     *
+     * @return string
+     */
+    public function post_send($body,$json=false,$query=false){
         if($this->ishttps){
             $url = 'https://'.$this->host.'/'.$this->service;
         }else{
             $url = 'http://'.$this->host.'/'.$this->service;
         }
+        $body = is_string($body)?$body:($json?json_encode($body):http_build_query($body));
         $params=['body'=>$body];
         if($query){
             $params['query']=$query;
@@ -100,11 +112,22 @@ final class SDK
 
     private function send($mothd,$url,array $params){
         $signature=$this->signature;
-        $http = new Request($mothd,$url,$params);
+        $http = new Request($mothd,$url,[],'');
+        if(!empty($params['body'])){
+
+            $http=$http->withBody( stream_for($params['body']));
+        }
+        if(!empty($params['query'])) {
+            $http = $http->withUri($http->getUri()->withQuery(http_build_query($params['query'])));
+        }
         $http=$http->withHeader('User-Agent','GSDATA-v'.self::VERSION.'-SDK');
         $requset=$signature->signRequest($http);
-        $client = new Client();
-        $response=$client->send($requset);
-        return $response->getBody()->getContents();
+        try {
+            $client = new Client();
+            $response = $client->send($requset);
+            return $response->getBody()->getContents();
+        }catch (RequestException $exception){
+            return $exception->getResponse()->getBody()->getContents();
+        }
     }
 }
