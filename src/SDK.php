@@ -28,6 +28,7 @@ final class SDK
 
     private $ishttps = false;
 
+    private $headers;
 
 
     public function __construct($app_key,$app_secret,$version='2',$ishttps=false)
@@ -49,6 +50,7 @@ final class SDK
     }
 
     /**
+     * post 请求
      *
      * @param string $body
      * @param bool $query
@@ -69,6 +71,13 @@ final class SDK
         return $this->send('POST',$url,$params);
     }
 
+    /**
+     * get 请求
+     *
+     * @param bool $query
+     *
+     * @return string
+     */
     public function get_send($query=false){
         if($this->ishttps){
             $url = 'https://'.$this->host.'/'.$this->service;
@@ -83,20 +92,33 @@ final class SDK
         return $this->send('GET',$url,$params);
     }
 
-    public function delete_send($query=false){
+    /**
+     * delete 请求
+     *
+     * @param array $body
+     * @param bool $query
+     * @return string
+     */
+    public function delete_send(array $body,$query=false){
         if($this->ishttps){
             $url = 'https://'.$this->host.'/'.$this->service;
         }else{
             $url = 'http://'.$this->host.'/'.$this->service;
         }
+        $params=['body'=>$body];
         if($query){
-            $params=['query'=>$query];
-        }else{
-            $params=[];
+            $params['query']=$query;
         }
         return $this->send('DELETE',$url,$params);
     }
 
+    /**
+     * update 请求
+     *
+     * @param array $body
+     * @param bool $query
+     * @return string
+     */
     public function put_send(array $body,$query=false){
         if($this->ishttps){
             $url = 'https://'.$this->host.'/'.$this->service;
@@ -108,6 +130,42 @@ final class SDK
             $params['query']=$query;
         }
         return $this->send('PUT',$url,$params);
+    }
+
+    /**
+     * 获取列表的总页数
+     *
+     * @return int
+     */
+    public function get_page_total(){
+        return isset($this->headers['X-Pagination-Page-Count'])?$this->headers['X-Pagination-Page-Count'][0]:0;
+    }
+
+    /**
+     * 获取列表的总条数
+     *
+     * @return int
+     */
+    public function get_total(){
+        return isset($this->headers['X-Pagination-Total-Count'])?$this->headers['X-Pagination-Total-Count'][0]:0;
+    }
+
+    /**
+     * 当前页
+     *
+     * @return int
+     */
+    public function get_now_page(){
+        return isset($this->headers['X-Pagination-Current-Page'])?$this->headers['X-Pagination-Current-Page'][0]:0;
+    }
+
+    /**
+     * 每页的条数
+     *
+     * @return int
+     */
+    public function get_page_limit(){
+        return isset($this->headers['X-Pagination-Per-Page'])?$this->headers['X-Pagination-Per-Page'][0]:0;
     }
 
     private function send($mothd,$url,array $params){
@@ -125,6 +183,7 @@ final class SDK
         try {
             $client = new Client();
             $response = $client->send($requset);
+            $this->headers=$response->getHeaders();
             return $response->getBody()->getContents();
         }catch (RequestException $exception){
             return $exception->getResponse()->getBody()->getContents();
