@@ -18,7 +18,7 @@ final class SDK
 {
     const VERSION = '1.0.2';
 
-    private $host = 'api.qb.cn';
+    private $host = 'api.gsdata.cn';
 
     private $old_host = 'open.gsdata.cn/api';
 
