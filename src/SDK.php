@@ -18,7 +18,7 @@ final class SDK
 {
     const VERSION = '1.0.2';
 
-    private $host = 'api.gsdata.cn';
+    private $host = 'api.qb.cn';
 
     private $old_host = 'open.gsdata.cn/api';
 
@@ -29,6 +29,8 @@ final class SDK
     private $ishttps = false;
 
     private $headers;
+
+    private $is_json = false;
 
 
     public function __construct($app_key,$app_secret,$version='2',$ishttps=false)
@@ -58,6 +60,7 @@ final class SDK
      * @return string
      */
     public function post_send($body,$json=false,$query=false){
+        $this->is_json = $json;
         if($this->ishttps){
             $url = 'https://'.$this->host.'/'.$this->service;
         }else{
@@ -99,7 +102,7 @@ final class SDK
      * @param bool $query
      * @return string
      */
-    public function delete_send(array $body,$query=false){
+    public function delete_send(array $body,$query=false,$json=false){
         if($this->ishttps){
             $url = 'https://'.$this->host.'/'.$this->service;
         }else{
@@ -119,7 +122,7 @@ final class SDK
      * @param bool $query
      * @return string
      */
-    public function put_send(array $body,$query=false){
+    public function put_send(array $body,$query=false,$json=false){
         if($this->ishttps){
             $url = 'https://'.$this->host.'/'.$this->service;
         }else{
@@ -179,6 +182,14 @@ final class SDK
             $http = $http->withUri($http->getUri()->withQuery(http_build_query($params['query'])));
         }
         $http=$http->withHeader('User-Agent','GSDATA-v'.self::VERSION.'-SDK');
+        $http=$http->withAddedHeader('Accept','application/json');
+        if(!empty($params['body'])) {
+            if($this->is_json){
+                $http = $http->withAddedHeader('content-Type', 'application/json');
+            }else {
+                $http = $http->withAddedHeader('content-Type', 'application/x-www-form-urlencoded');
+            }
+        }
         $requset=$signature->signRequest($http);
         try {
             $client = new Client();
