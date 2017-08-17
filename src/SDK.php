@@ -103,11 +103,13 @@ final class SDK
      * @return string
      */
     public function delete_send(array $body,$query=false,$json=false){
+        $this->is_json = $json;
         if($this->ishttps){
             $url = 'https://'.$this->host.'/'.$this->service;
         }else{
             $url = 'http://'.$this->host.'/'.$this->service;
         }
+        $body = is_string($body)?$body:($json?json_encode($body):http_build_query($body));
         $params=['body'=>$body];
         if($query){
             $params['query']=$query;
@@ -123,11 +125,13 @@ final class SDK
      * @return string
      */
     public function put_send(array $body,$query=false,$json=false){
+        $this->is_json = $json;
         if($this->ishttps){
             $url = 'https://'.$this->host.'/'.$this->service;
         }else{
             $url = 'http://'.$this->host.'/'.$this->service;
         }
+        $body = is_string($body)?$body:($json?json_encode($body):http_build_query($body));
         $params=['body'=>$body];
         if($query){
             $params['query']=$query;
